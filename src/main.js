@@ -2,40 +2,52 @@ import ENVIROMENT from "./config/enviroment.config.js";
 import connectToMongoBD from "./config/configMongoDB.config.js";
 import express from 'express';
 import workspaceRouter from "./routers/workspace.router.js";
-import workspaceController from "./controllers/workspace.controller.js";
 import authRouter from "./routers/auth.router.js";
-import mailTransporter from "./config/mailTransporter.config.js";
-import cors from 'cors'
+import cors from 'cors';
 
+const app = express();
 
-connectToMongoBD()
+app.use(cors());
+app.use(express.json());
 
-//nos crea una app de express (servidor web)
-const app = express()
-//configuro a mi api como publica, cualquier dominio puede hacer peticiones a mi api
-app.use(cors())
+// ✅ CONEXIÓN NO BLOQUEANTE
+let isDatabaseConnected = false;
 
-/* mailTransporter.sendMail(
-    {
-        from: ENVIROMENT.GMAIL_USER,
-        to: 'agusdevelop21@gmail.com',
-        subject: 'Mail de prueba',
-        html: '<h1>hola desde node js</h1>'
+// Conectar a DB pero no esperar
+connectToMongoBD().then(() => {
+    console.log('✅ Conectado a MongoDB');
+    isDatabaseConnected = true;
+}).catch(error => {
+    console.log('❌ Error conectando a MongoDB:', error.message);
+    isDatabaseConnected = false;
+});
+
+// Ruta de health check que no depende de DB
+app.get('/health', (req, res) => {
+    res.json({ 
+        status: 'OK', 
+        database: isDatabaseConnected ? 'Connected' : 'Connecting',
+        timestamp: new Date() 
+    });
+});
+
+app.get('/test', (request, response) => {
+    response.send('<h1>Hola Mundo</h1>');
+});
+
+// Tus rutas normales (pueden fallar si DB no está conectada)
+app.use('/api/auth', authRouter);
+app.use('/api/workspace', workspaceRouter);
+
+// Middleware para manejar DB no conectada
+app.use((req, res, next) => {
+    if (!isDatabaseConnected && req.method !== 'GET') {
+        return res.status(503).json({ 
+            error: 'Database connecting, please try again later' 
+        });
     }
-) */
+    next();
+});
 
-//Nuesta app por defecto no esta preparada para recibir json en el body
-//configuracion para que el json se transforme en un objeto de js
-app.use(express.json())
-
-// ROUTERS
-//todas las consultas con /api/auth van a ser gestionadas por el authrouter
-app.use('/api/auth', authRouter)
-app.use('/api/workspace', workspaceRouter)
-
-app.listen(
-    ENVIROMENT.PORT || 8080,
-    ()=> {
-    console.log('Tu servidor se esta ejecutando correctamente en el puerto ' + ENVIROMENT.PORT)
-})
+export default app;
 

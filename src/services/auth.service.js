@@ -34,6 +34,7 @@ class AuthService {
                 `
             }
         )
+        return { success: true, user_id: user_id_created }
     }
 
     static async verifyEmail (verification_token){

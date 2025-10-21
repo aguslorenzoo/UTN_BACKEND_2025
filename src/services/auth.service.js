@@ -48,6 +48,7 @@ class AuthService {
             const user_found = await UserRepository.getById(user_id)
             if(!user_found){
                 throw new ServerError(404, 'Usuario no encontrado')
+                console.log(error)
             }
 
             if(user_found.verified_email){

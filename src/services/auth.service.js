@@ -41,8 +41,6 @@ class AuthService {
                 <a href="${ENVIRONMENT.URL_BACKEND}/api/auth/verify-email/${verification_token}">Verificar</a>
             `
         })
-
-        return
     }
 
     static async verifyEmail (verification_token){

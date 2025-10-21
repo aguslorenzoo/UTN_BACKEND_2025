@@ -29,11 +29,11 @@ class UserRepository {
     static async getById(user_id){
         try{
             const user_found = await User.findById(user_id)
-            console.log(user_found)
             return user_found
         }
         catch{
             console.log('[SERVER ERROR]: no se pudo obetener el usuario con id ' + user_id, error)
+            throw error
         }
     }
 

@@ -34,6 +34,9 @@ class AuthService {
                 `
             }
         )
+        console.log("[SERVER]: Mail enviado correctamente a:", email)
+        }catch (error) {
+            console.error("[SERVER]: Error al enviar mail:", error)
     }
 
     static async verifyEmail (verification_token){
